@@ -9,7 +9,7 @@ class Error(Exception):
 
 class Book:
     inventory = []
-    books_ID = []
+    total_sales = {}
 
     def __init__(self, title: str, category: str, ID: str, price: float, quantity=1, ):
         self.title = title
@@ -20,16 +20,29 @@ class Book:
         Book.inventory.append(self)
 
     def sold_book(self, num: int):
-        if num <= self.quantity and self.quantity > 0:
+        if num <= self.quantity > 0:
             total_price = num * self.price
             self.quantity = self.quantity - num
             print(f"You have purchased {str(num)} copy/s of {self.title} for {str(total_price)}")
+            Book.add_sale(self, num, total_price)
         elif self.quantity == 0:
             Error(f"Sorry, we don't have any available copy for {self.title}")
         elif self.quantity > 1:
             Error(f"Sorry, {self.title}, has only {str(self.quantity)} copies available ")
         else:
-            Error(f"Sorry, {self.title}, has only {str(self.quantity)} copy available ")
+            Error(f"Sorry, {self.title}, has only 1 copy available ")
+
+    @classmethod
+    def add_sale(cls, book_sold, number_sold, income):
+        if book_sold.title in cls.total_sales:
+            old_quantity_sold = cls.total_sales[book_sold.title]['qty_sold']
+            new_quantity_sold = old_quantity_sold + number_sold
+            cls.total_sales[book_sold.title]['qty_sold'] = new_quantity_sold
+            old_income = cls.total_sales[book_sold.title]['total_income']
+            new_income = old_income + income
+            cls.total_sales[book_sold.title]['total_income'] = new_income
+        else:
+            cls.total_sales[book_sold.title] = {'qty_sold': number_sold, 'total_income': income}
 
     @classmethod
     def find(cls):
@@ -41,19 +54,19 @@ class Book:
                 list_of_ids = [i.ID for i in cls.inventory]
                 match = list_of_ids.count(attribute)
                 if match > 0:
-                    book = list_of_ids.index(attribute)
-                    return cls.inventory[book]
+                    book_location = list_of_ids.index(attribute)
+                    return cls.inventory[book_location]
                 else:
                     print("book not in inventory")
                     return None
             elif search == 'title':
                 print("Search book by title")
-                attribute = input("What is the title of the book you are looking for? ")
+                attribute = input("What is the title of the book you are looking for? ").lower()
                 list_of_titles = [i.title for i in cls.inventory]
                 match = list_of_titles.count(attribute)
                 if match > 0:
-                    book = list_of_titles.index(attribute)
-                    return cls.inventory[book]
+                    book_location = list_of_titles.index(attribute)
+                    return cls.inventory[book_location]
                 else:
                     print("book not in inventory")
                     return None
@@ -91,11 +104,10 @@ class Book:
             while True:
                 requested_category = input('what type of books are you looking for: ').lower()
                 if requested_category in available_categories:
-                    break
+                    return requested_category
                 else:
                     print("That is not a valid option, please select an that it's in the list of categories available")
                     return None
-            return requested_category
 
 
 class Users:
@@ -111,24 +123,25 @@ class Users:
 
     @classmethod
     def log_out(cls):
-        return True
+        return False
 
     @classmethod
     def log_in(cls):
         in_username = input('What is your username: ')
         if in_username in cls.all_user_usernames:
             i = cls.all_user_usernames.index(in_username)
+            user_instance = cls.all_user_instances[i]
             while True:
                 in_password = input('What is your password: ')
-                if cls.all_user_instances[i].password == in_password:
-                    return True
+                if in_password == user_instance.password:
+                    return user_instance
                 else:
-                    end = input("Wrong password, press 'r' to register or anything else to continue ").lower()
-                    if end == 'r':
+                    end = input("Wrong password, press 'x' to register or anything else to continue ").lower()
+                    if end == 'x':
                         return False
 
         else:
-            print('The user does not exist, please register')
+            print('(The user does not exist, please register)')
             return False
 
     @staticmethod
@@ -144,6 +157,12 @@ class Customer(Users):
         super().__init__(username, password, email)
         Customer.all_customer_instances.append(self)
 
+    @classmethod
+    def customer_check(cls, user_instance):
+        if user_instance in cls.all_user_instances:
+            return True
+        else:
+            return False
     # Shows suggestions of books under the category suggested
     @staticmethod
     def suggestion_category():
@@ -180,28 +199,26 @@ class Customer(Users):
             print(f"We do not have any books with {requested_category} available for purchase")
 
     @staticmethod
-    def view_books_by_title():
-        search = input("What book are you looking for: ").lower()
-        books = [book for book in Book.inventory if book.title == search]
-        if len(books) > 0:
-            book = books[0]
-            print('Your book was found')
-            print(f"{book.title} Price: £{book.price} Quantity: {book.quantity}")
-            return book
-        else:
-            print(f"No book was found with title: {search}")
+    def view_books():
+        book = Book.find()
+        if book is None:
+            print("No book was found with those characteristics")
             return None
+        else:
+            print('Your book was found')
+            print(f"{book.title.title()} Price: £{book.price} Quantity: {book.quantity}")
+            return book
 
     @staticmethod
     def buy_book():
-        book = Customer.view_books_by_title()
+        book = Customer.view_books()
         if book is None:
             return
-        num = int(input("How many books do you want to buy"))
+        num = int(input(f"How many of {book.title.title()} do you want to buy"))
         total_price = num * book.price
         while True:
             answer = input(
-                f"Are you sure you want to {str(num)} copy/s of {book.title} for £{str(total_price)}?: (yes/no)").lower()
+                f"Are you sure you want {str(num)} copy/s of {book.title.title()} for £{str(total_price)}?: (yes/no)").lower()
             if answer == 'yes':
                 book.sold_book(book, num)
                 break
@@ -223,13 +240,21 @@ class Admin(Users):
     def edit_book():
         item = Book.find()
         if item is None:
-            title = input("What is the tittle of the book? ").lower()
-            category = input("What it's the book category ").lower()
-            ID = input("What it's the book's ID? ")
-            price = Book.price_set()
-            quantity = int(input("How many books are you adding to the system? "))
-            book = Book(title, category, ID, price, quantity)
-            return
+            while True:
+                choice = input("Do you want to add a new book? (yes/no)").lower()
+                if choice == 'yes':
+                    title = input("What is the tittle of the new book? ").lower()
+                    category = input("What it's the book category ").lower()
+                    ID = input("What it's the book's ID? ")
+                    price = Book.price_set()
+                    quantity = int(input("How many books are you adding to the system? "))
+                    book = Book(title, category, ID, price, quantity)
+                    return
+                elif choice == 'no':
+                    print("(No changes have been made to the inventory)")
+                    return
+                else:
+                    print("Please type yes or no")
         else:
             print("The following book has been found\n")
             print(
@@ -292,11 +317,15 @@ class Admin(Users):
                 else:
                     print("(please select a valid option: title, category, ID, price or quantity)")
 
-    def sales(self):
-        pass
+    @staticmethod
+    def sales():
+        print("\nBOOKS SOLD:")
+        [print(f"-{i.title()}: {str(j['qty_sold'])} copy/s") for i, j in zip(Book.total_sales.keys(), Book.total_sales.values())]
 
-    def income(self):
-        pass
+    @staticmethod
+    def income():
+        total_income = [i['total_income'] for i in Book.total_sales.values()]
+        print(f"\nThe total amount of money made has been £{sum(total_income)}")
 
 # I am so confused
 
