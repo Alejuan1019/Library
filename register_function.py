@@ -5,12 +5,12 @@ security = '1234'
 
 def register_user():
     username = input("Write a username: ")
-    password = input("Write a password: ")
-    email = input("What is your email: ")
     if username in Users.all_user_usernames:
         print("(This user already exists please Log in)")
         return False
     else:
+        password = input("Write a password: ")
+        email = input("What is your email: ")
         return username, password, email
 
 
