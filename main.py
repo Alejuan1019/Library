@@ -26,23 +26,26 @@ def main():
                     print(f"(Welcome back user {user_instance.username}! ...)")
                     while True:
                         print("\nWelcome to the customer portal you have the following options\n")
-                        print("-View books of a certain category (press 1)")
-                        print("-Look for a book by its title/ID (press 2)")
-                        print("-Let us give you a book suggestion based on the category of your choice (press 3)")
-                        print("-Buy a book (press 4)")
-                        print("-Log out (press 5)")
+                        print("-View inventory (press 1)")
+                        print("-View books of a certain category (press 2)")
+                        print("-Look for a book by its title/ID (press 3)")
+                        print("-Let us give you a book suggestion based on the category of your choice (press 4)")
+                        print("-Buy a book (press 5)")
+                        print("-Log out (press 6)")
                         choice = input('\nAnswer: ')
                         if choice == '1':
-                            Customer.view_books_by_category()
+                            Users.see_inventory()
                         elif choice == '2':
-                            Customer.view_books()
+                            Customer.view_books_by_category()
                         elif choice == '3':
-                            Customer.suggestion_category()
+                            Customer.view_books()
                         elif choice == '4':
-                            Customer.buy_book()
+                            Customer.suggestion_category()
                         elif choice == '5':
+                            Customer.buy_book()
+                        elif choice == '6':
                             print("logging out")
-                            pass
+                            break
                         else:
                             print("(Please type a valid option)")
                 # Admin
@@ -59,14 +62,14 @@ def main():
                         if choice == '1':
                             Users.see_inventory()
                         elif choice == '2':
-                            Admin.edit_book()
+                            Admin.add_edit_book()
                         elif choice == '3':
                             Admin.sales()
                         elif choice == '4':
                             Admin.income()
                         elif choice == '5':
                             print("logging out")
-                            pass
+                            break
                         else:
                             print("(Please type a valid option)")
         elif choice == '3':

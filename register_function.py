@@ -39,8 +39,8 @@ def register_admin():
 
 
 def register():
-    choice = input("Do you want to register as user or admin: ").lower()
     while True:
+        choice = input("Do you want to register as user or admin: ").lower()
         if choice == 'admin':
             a = register_admin()
             if a is False:
