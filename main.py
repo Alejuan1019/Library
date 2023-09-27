@@ -32,7 +32,7 @@ def main():
                         print("-Let us give you a book suggestion based on the category of your choice (press 4)")
                         print("-Buy a book (press 5)")
                         print("-Log out (press 6)")
-                        choice = input('\nAnswer: ')
+                        choice = input('\nAnswer: ').strip()
                         if choice == '1':
                             Users.see_inventory()
                         elif choice == '2':
@@ -58,7 +58,7 @@ def main():
                         print("-See sales (press 3)")
                         print("-See total income (press 4)")
                         print("-Log out (press 5)")
-                        choice = input('\nAnswer: ')
+                        choice = input('\nAnswer: ').strip()
                         if choice == '1':
                             Users.see_inventory()
                         elif choice == '2':

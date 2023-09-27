@@ -34,38 +34,41 @@ class Book:
 
     def edit_book(self):
         while True:
-            choice = input("What do you want to edit? Type which one you want to edit (Title/Category/ID/Price/Quantity) or type (quit) to exit: ").lower()
+            choice = input("What do you want to edit? Type which one you want to edit (Title/Category/ID/Price/Quantity) \
+            or type (see) to see the book's details type (quit) to exit: ").lower().strip()
             if choice == 'title':
                 print(f"\nUpdate {self.title.title()}'s title")
-                new_title = input("\nWhat is the new title?")
+                new_title = input("\nWhat is the new title? ").lower().strip()
                 old_title = copy.deepcopy(self.title)
                 self.title = new_title
-                print(f"\n{old_title} has changed to {self.title.title()}")
+                print(f"\n'{old_title.title()}' has changed to '{self.title.title()}'")
             elif choice == 'category':
                 print(f"\n{self.title.title()}'s current category is {self.category.title()}")
-                new_category = input("\nWhat is the new category for this book? ")
+                new_category = input("\nWhat is the new category for this book? ").lower().strip()
                 old_category = copy.deepcopy(self.category)
                 self.category = new_category
-                print(f"\n{self.title.title()}'s category has changed from {old_category} to {self.category.title()}")
+                print(f"\n{self.title.title()}'s category has changed from {old_category.title()} to {self.category.title()}")
             elif choice == 'id':
                 print(f"\n{self.title.title()}'s current ID is {self.ID}")
-                new_ID = input("\nWhat is the new ID for this book? ")
+                new_ID = input("\nWhat is the new ID for this book? ").lower().strip()
                 old_ID = copy.deepcopy(self.ID)
                 self.ID = new_ID
                 print(f"\n{self.title.title()}'s ID has changed from {old_ID} to {self.ID}")
             elif choice == 'price':
-                print(f"{self.title.title()}'s current price is £{str(self.price)}")
+                print(f"{self.title.title()}'s current price is £{self.price:.2f}")
                 new_price = Book.price_set()
                 old_price = copy.deepcopy(self.price)
                 self.price = new_price
-                print(f"\n{self.title.title()}'s price has changed from £{str(old_price)} has changed to £{str(self.price)}")
+                print(f"\n{self.title.title()}'s price has changed from £{old_price:.2f} has changed to £{self.price:.2f}")
+            elif choice == 'see':
+                print(f"Title: {self.title.title()}, Category: {self.category.title()}, ID: {self.ID}, price: £{self.price}, quantity: {self.quantity}\n")
             elif choice == 'quit':
                 return
             elif choice == 'quantity':
                 while True:
-                    print(f"{self.title.title()}'s current quantity in stock is £{str(self.quantity)}")
-                    choice = input("\nDo you want to add more: ").lower()
-                    if choice == 'yes':
+                    print(f"{self.title.title()}'s current quantity in stock is {str(self.quantity)}")
+                    choice = input("\nDo you want to add more books (press 1) or edit the quantity of books (press 2): ").lower().strip()
+                    if choice == '1':
                         while True:
                             add = input("\nHow many books do you want to add: ")
                             if add.isnumeric():
@@ -76,7 +79,7 @@ class Book:
                                 return
                             else:
                                 print("(Please type a valid quantity)")
-                    elif choice == 'no':
+                    elif choice == '2':
                         print(f"\nUpdating {self.title.title()}'s quantity")
                         while True:
                             new_qty = input(f"\nHWhat is the new quantity for {self.title.title()}: ")
@@ -87,7 +90,7 @@ class Book:
                             else:
                                 print("(Please type a valid quantity)")
                     else:
-                        print("Type yes or no")
+                        print("Type 1 or 2")
             else:
                 print("(please select a valid option: title, category, ID, price, quantity or quit)")
 
@@ -104,10 +107,11 @@ class Book:
             cls.total_sales[book_sold.title] = {'qty_sold': number_sold, 'total_income': income}
 
     @classmethod
-    def add_new_book(cls):
-        title = input("What is the tittle of the new book? ").lower()
-        ID = input("What is the book's ID? ")
-        category = input("What it's the book category? ").lower()
+    def add_new_book(cls, title=None, ID=None):
+        if title is None:
+            title = input("What is the tittle of the new book? ").lower().strip()
+            ID = input("What is the book's ID? ").strip()
+        category = input("What it's the book category? ").lower().strip()
         price = cls.price_set()
         while True:
             quantity = input("How many books are you adding to the system? ")
@@ -118,35 +122,38 @@ class Book:
                 print("(Please type a valid quantity)")
         book_instance = Book(title, category, ID, price, quantity)
         print("\nThe following has been added to the inventory")
-        print(f"(Book: {title.title()}  |  Category: {category.title()}  |  ID: {ID}  |  Price: £{price:.2f}  |  Quantity: {str(quantity)}")
+        print(f"(Book: {title.title()}  |  Category: {category.title()}  |  ID: {ID}  |  Price: £{float(price):.2f}  |  Quantity: {str(quantity)})")
         return
 
     @classmethod
     def check_for_book(cls):
-        title = input("\nWhat is the tittle of the book? ").lower()
+        title = input("\nWhat is the tittle of the book? ").lower().strip()
         list_of_titles = [i.title for i in cls.inventory]
         match = list_of_titles.count(title)
         if match > 0:
+            print(f"Book already exists with this title. Accessing existing book to edit...")
             return True, 'title', title
+
         else:
             print("(Book was not found by title search)")
-            ID = input("\nWhat is the book's ID? ")
+            ID = input("\nWhat is the book's ID? ").strip()
             list_of_ids = [i.ID for i in cls.inventory]
             match = list_of_ids.count(ID)
             if match > 0:
+                print(f"Book already exists with this ID. Accessing existing book to edit...")
                 return True, 'ID', ID
             else:
-                return False, 'N/A', 'N/A'
+                return False, title, ID
 
     @classmethod
-    def get_book(cls,found_by, title_id):
+    def get_book(cls, found_by, title_id):
         if found_by == 'ID':
             list_of_ids = [i.ID for i in cls.inventory]
             book_location = list_of_ids.index(title_id)
             item = cls.inventory[book_location]
             print("The following book has been found\n")
             print(
-                f"Title: {item.title}, Category: {item.category}, ID: {item.ID}, price: £{item.price}, quantity: {item.quantity}\n")
+                f"Title: {item.title.title()}, Category: {item.category.title()}, ID: {item.ID}, price: £{item.price}, quantity: {item.quantity}\n")
             return item
         elif found_by == 'title':
             list_of_titles = [i.title for i in cls.inventory]
@@ -154,13 +161,13 @@ class Book:
             item = cls.inventory[book_location]
             print("The following book has been found\n")
             print(
-                f"Title: {item.title}, Category: {item.category}, ID: {item.ID}, price: £{item.price}, quantity: {item.quantity}\n")
+                f"Title: {item.title.title()}, Category: {item.category.title()}, ID: {item.ID}, price: £{item.price}, quantity: {item.quantity}\n")
             return item
 
     @classmethod
     def find(cls):
         while True:
-            search = input("How do you want to search for a book by ID or title? ").lower()
+            search = input("How do you want to search for a book by ID or title? ").lower().strip()
             if search == 'id':
                 print("Search book by ID")
                 attribute = input("What is the ID of the book you are looking for? ")
@@ -174,7 +181,7 @@ class Book:
                     return None
             elif search == 'title':
                 print("Search book by title")
-                attribute = input("What is the title of the book you are looking for? ").lower()
+                attribute = input("What is the title of the book you are looking for? ").lower().strip()
                 list_of_titles = [i.title for i in cls.inventory]
                 match = list_of_titles.count(attribute)
                 if match > 0:
@@ -215,15 +222,14 @@ class Book:
             print("These are the following categories available")
             [print(f"-{i.title()}") for i in available_categories]
             while True:
-                requested_category = input('What type of books are you looking for: ').lower()
+                requested_category = input('What type of books are you looking for: ').lower().strip()
                 if requested_category in available_categories:
                     return requested_category
                 elif requested_category == 'quit':
                     return None
                 else:
                     print("We currently do not have books of that category: \n\
-                    Either select one that it's in the list of categories available or type (quit) to go to main menu")
-
+Either select one that it's in the list of categories available or type (quit) to go to main menu")
 
 
 class Users:
@@ -255,7 +261,7 @@ class Users:
                 if in_password == user_instance.password:
                     return user_instance
                 else:
-                    end = input("Wrong password, press 'x' to go back to the main menu or anything else to try again ").lower()
+                    end = input("Wrong password, press 'x' to go back to the main menu or anything else to try again ").lower().strip()
                     if end == 'x':
                         return False
 
@@ -271,7 +277,8 @@ class Users:
             amount = len(Book.inventory)
             print(f"\n(There are currently {str(amount)} books in the inventory)")
             for i in Book.inventory:
-                print(f"(Book: {i.title.title()}  |  Category: {i.category.title()}  |  ID: {i.ID}  |  Price: £{str(i.price)}  |  Quantity: {str(i.quantity)}")
+                num = Book.inventory.index(i)
+                print(f"{num}. Book: {i.title.title()}  |  Category: {i.category.title()}  |  ID: {i.ID}  |  Price: £{str(i.price)}  |  Quantity: {str(i.quantity)}")
 
 
 class Customer(Users):
@@ -319,7 +326,7 @@ class Customer(Users):
         elif len(books_available) == 1:
             print(f"\nThis is the only book with the category {requested_category.title()} left that is available for purchase")
             for i in books_available:
-                print(f"-{i.title.title()} Price: £{i.price} Stock amount: {i.quantity}")
+                print(f"Title: {i.title.title()} Price: £{i.price} Stock amount: {i.quantity}")
         else:
             print(f"We do not have any books with {requested_category} available for purchase")
 
@@ -345,7 +352,7 @@ class Customer(Users):
                 total_price = num * book.price
                 while True:
                     answer = input(
-                        f"Are you sure you want {str(num)} copy/s of {book.title.title()} for £{str(total_price)}?: (yes/no)").lower()
+                        f"Are you sure you want {str(num)} copy/s of {book.title.title()} for £{str(total_price)}?: (yes/no)").lower().strip()
                     if answer == 'yes':
                         book.sold_book(book, num)
                         break
@@ -374,13 +381,12 @@ class Admin(Users):
             print("Type the title or ID to add/edit book.")
             a, found_by, title_id = Book.check_for_book()
             if a is True:
-                print(f"Book already exists. Accessing existing book to edit...")
                 item = Book.get_book(found_by, title_id)
                 item.edit_book()
                 return
             elif a is False:
                 print(f"Book doesn't already exists. Creating new book in inventory...")
-                Book.add_new_book()
+                Book.add_new_book(found_by, title_id)
                 return
 
     @staticmethod
